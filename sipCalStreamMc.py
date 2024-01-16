@@ -63,37 +63,32 @@ st.subheader("Calculate and visualize the details of your Systematic Investment 
 # Get user inputs
 sip_amount = st.number_input("Enter SIP amount per month:", value=1000.0)
 annual_increment = st.number_input("Enter annual increment in percentage:", value=0.0)
-tenure = st.number_input("Enter tenure in years:", value=10)
+tenure = st.slider("Select tenure in years:", min_value=1, max_value=30, value=10)
 rate_of_return = st.number_input("Enter expected rate of return in percentage:", value=12.0)
 
 # Calculate SIP details
 sip_details = calculate_sip_details(sip_amount, annual_increment, tenure, rate_of_return)
 
-# Display the results
-st.header("SIP Details:")
-st.write(f"Total Investment: {sip_details['Total Investment']:.2f}")
-st.write(f"Total Interest Gained: {sip_details['Total Interest Gained']:.2f}")
-st.write(f"Total Return: {sip_details['Total Return']:.2f}")
-st.write(f"Total Tax Deducted (10% on gains): {sip_details['Total Tax Deducted (10% on gains)']:.2f}")
-st.write(f"Final Return Post Tax Deduction: {sip_details['Final Return Post Tax Deduction']:.2f}")
+# Layout for graphs
+col1, col2 = st.columns(2)
 
-# Plotting SIP data
-st.header("SIP Data Over Time:")
-fig, ax1 = plt.subplots(figsize=(10, 6))
-ax2 = ax1.twinx()
+# Line chart for SIP data
+col1.header("SIP Data Over Time:")
+fig_line, ax1 = plt.subplots(figsize=(8, 6))
 
 sip_data = sip_details['SIP Data']
 ax1.plot(sip_data['Month'], sip_data['Investment'], 'g-', label='Investment')
-ax2.plot(sip_data['Month'], sip_data['Interest'], 'b-', label='Interest', linestyle='dashed')
-
 ax1.set_xlabel('Month')
 ax1.set_ylabel('Investment', color='g')
+
+ax2 = ax1.twinx()
+ax2.plot(sip_data['Month'], sip_data['Interest'], 'b-', label='Interest', linestyle='dashed')
 ax2.set_ylabel('Interest', color='b')
 
-st.pyplot(fig)
+col1.pyplot(fig_line)
 
 # Pie chart for Total Return Composition
-st.header("Total Return Composition:")
+col2.header("Total Return Composition:")
 composition_data = pd.DataFrame({
     'Category': ['Total Investment', 'Total Interest Gained'],
     'Amount': [sip_details['Total Investment'], sip_details['Total Interest Gained']]
@@ -101,4 +96,12 @@ composition_data = pd.DataFrame({
 fig_pie = px.pie(composition_data, values='Amount', names='Category',
                  title="Composition of Total Return",
                  hole=0.3, color_discrete_sequence=mckinsey_colors)
-st.plotly_chart(fig_pie)
+col2.plotly_chart(fig_pie)
+
+# Text summary
+st.header("SIP Details:")
+st.write(f"Total Investment: {sip_details['Total Investment']:.2f}")
+st.write(f"Total Interest Gained: {sip_details['Total Interest Gained']:.2f}")
+st.write(f"Total Return: {sip_details['Total Return']:.2f}")
+st.write(f"Total Tax Deducted (10% on gains): {sip_details['Total Tax Deducted (10% on gains)']:.2f}")
+st.write(f"Final Return Post Tax Deduction: {sip_details['Final Return Post Tax Deduction']:.2f}")
